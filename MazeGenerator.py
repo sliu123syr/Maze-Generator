@@ -1,8 +1,8 @@
 from graphics import *
 import random
 
-rows = 10
-cols = 10
+rows = 20
+cols = 20
 
 nodeList = []
 
@@ -16,6 +16,18 @@ def main():
             nodeList.append(newNode)
 
     curNode = nodeList[0]
+    nodeStack = Stack()
+    fillednodes = 0
+    while fillednodes <= (rows*cols - 2):
+        print(curNode.index)
+        nextNode = curNode.randomneighbor()
+        if nextNode != False:
+            nodeStack.push(curNode)
+            curNode = nextNode
+            fillednodes = fillednodes + 1
+        else:
+            curNode = nodeStack.pop()
+
     draw(mainwindow)
 
 
@@ -64,29 +76,55 @@ class Node:
         return self.visited
 
     def randomneighbor(self):
-        while True:
-            num = random.randint(1,4)
-            if (num == 1) and self.index > self.col and nodeList[self.index - self.col].getvisited() == False:
+        order = [1,2,3,4]
+        random.shuffle(order)
+        for num in order:
+            if num == 1 and self.index > cols and nodeList[(self.index - cols) - 1].getvisited() == False:
                 self.top = False
-                nodeList[self.index - self.col].setbot(False)
-                return nodeList[self.index - self.col]
-            if num == 2 and self.index%self.col != 1 and nodeList[self.index - 1].getvisited() == False:
-                self.left = False
-                nodeList[self.index - 1].setright(False)
-                return nodeList[self.index - 1]
-            if num == 1 and self.index%self.col != 0 and nodeList[self.index + 1].getvisited() == False:
-                self.right = False
-                nodeList[self.index + 1].setleft(False)
-                return nodeList[self.index + 1]
-            if num == 1 and self.index+self.col <= self.row*self.col and nodeList[self.index + self.col].getvisited() == False:
-                self.bot = False
-                nodeList[self.index + self.col].settop(False)
-                return nodeList[self.index + self.col]
+                self.visited = True
+                nodeList[(self.index - cols) - 1].setvisited(True)
+                nodeList[(self.index - cols) - 1].setbot(False)
+                return nodeList[(self.index - cols) - 1]
             
-        
+            if num == 2 and self.index%cols != 1 and nodeList[self.index - 2].getvisited() == False:
+                self.left = False
+                self.visited = True
+                nodeList[self.index - 2].setvisited(True)
+                nodeList[self.index - 2].setright(False)
+                return nodeList[self.index - 2]
+            
+            if num == 3 and self.index%cols != 0 and nodeList[self.index].getvisited() == False:
+                self.right = False
+                self.visited = True
+                nodeList[self.index].setvisited(True)
+                nodeList[self.index].setleft(False)
+                return nodeList[self.index]
+            
+            if num == 4 and self.index+cols <= rows*cols and nodeList[(self.index + cols) - 1].getvisited() == False:
+                self.bot = False
+                self.visited = True
+                nodeList[(self.index + cols) - 1].setvisited(True)
+                nodeList[(self.index + cols) - 1].settop(False)
+                return nodeList[(self.index + cols) - 1]
+        return False
 
+class Stack:
+     def __init__(self):
+         self.items = []
 
+     def isEmpty(self):
+         return self.items == []
 
+     def push(self, item):
+         self.items.append(item)
 
+     def pop(self):
+         return self.items.pop()
+
+     def peek(self):
+         return self.items[len(self.items)-1]
+
+     def size(self):
+         return len(self.items)
 
 main()

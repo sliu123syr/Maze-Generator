@@ -1,8 +1,8 @@
 import random
 import pygame
 
-rows = 20
-cols = 20
+rows = 10
+cols = 10
 nodelength = 30
 
 nodeList = []
@@ -112,7 +112,6 @@ def drawcontents(startwindow):
     startwindow.blit(WindowWidth, (180, 450))
     startwindow.blit(WindowHeight, (180, 500))
 
-
 def createmaze():
 
     global nodeList
@@ -128,10 +127,11 @@ def createmaze():
 
     pygame.init()
     mainwindow = pygame.display.set_mode([cols*nodelength+50, rows*nodelength+50])
-
+    
+    delay = 60
     running = True
     while running:
-        pygame.time.delay(25)
+        pygame.time.delay(delay)
         nextNode = curNode.randomneighbor()
         if nextNode != False:
             nodeStack.push(curNode)
@@ -140,7 +140,7 @@ def createmaze():
         elif nodeStack.size() > 0:
             curNode = nodeStack.pop()
         else:
-            break
+            running = False
 
         mainwindow.fill((255, 255, 255))
         draw(mainwindow, curNode)
@@ -151,20 +151,64 @@ def createmaze():
                 running = False
                 pygame.quit()
                 main()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    delay = -1
 
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-                pygame.quit()
-                main()
-
+    playinggame(mainwindow, curNode)
 
 def draw(mainwindow, curNode):
     Color_line=(0,0,0)
     for i in nodeList:
         if i == curNode:
             pygame.draw.rect(mainwindow, (0,0,255), pygame.Rect(i.col*nodelength+25, i.row*nodelength+25, nodelength, nodelength))
+        if i.top and i.visited == True:
+            pygame.draw.line(mainwindow, Color_line, (i.col*nodelength+25, i.row*nodelength+25), (i.col*nodelength+nodelength+25, i.row*nodelength+25))
+        if i.left and i.visited == True:
+            pygame.draw.line(mainwindow, Color_line, (i.col*nodelength+25, i.row*nodelength+25), (i.col*nodelength+25, i.row*nodelength+nodelength+25))
+        if i.right and i.visited == True:
+            pygame.draw.line(mainwindow, Color_line, (i.col*nodelength+nodelength+25, i.row*nodelength+25), (i.col*nodelength+nodelength+25, i.row*nodelength+nodelength+25))
+        if i.bot and i.visited == True:
+            pygame.draw.line(mainwindow, Color_line, (i.col*nodelength+25, i.row*nodelength+nodelength+25), (i.col*nodelength+nodelength+25, i.row*nodelength+nodelength+25))
+
+def playinggame(mainwindow, curNode):
+    running = True
+    while running:
+        pygame.time.delay(0)
+        mainwindow.fill((255, 255, 255))
+        drawgame(mainwindow, curNode)
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                pygame.quit()
+                main()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT and curNode.left == False:
+                    curNode = curNode.returnneighbor('Left')
+                if event.key == pygame.K_RIGHT and curNode.right == False:
+                    curNode = curNode.returnneighbor('Right')
+                if event.key == pygame.K_UP and curNode.top == False:
+                    curNode = curNode.returnneighbor('Top')
+                if event.key == pygame.K_DOWN and curNode.bot == False:
+                    curNode = curNode.returnneighbor('Bot')
+                    
+        if curNode == nodeList[-1]:
+            running == False
+            pygame.quit()
+            main()
+            break
+
+
+def drawgame(mainwindow, curNode):
+    Color_line=(0,0,0)
+    for i in nodeList:
+        if i == curNode:
+            pygame.draw.circle(mainwindow, (0,0,0), (i.col*nodelength+25+(nodelength/2), i.row*nodelength+25+(nodelength/2)),nodelength/2)
+        if i == nodeList[-1]:
+            pygame.draw.rect(mainwindow, (255,255,0), pygame.Rect(i.col*nodelength+25, i.row*nodelength+25, nodelength, nodelength))
         if i.top and i.visited == True:
             pygame.draw.line(mainwindow, Color_line, (i.col*nodelength+25, i.row*nodelength+25), (i.col*nodelength+nodelength+25, i.row*nodelength+25))
         if i.left and i.visited == True:
@@ -203,6 +247,16 @@ class Node:
 
     def getvisited(self):
         return self.visited
+
+    def returnneighbor(self, direction):
+        if direction == 'Top':
+            return nodeList[(self.index - cols) - 1]
+        if direction == 'Left':
+            return nodeList[self.index - 2]
+        if direction == 'Right':
+            return nodeList[self.index]
+        if direction == 'Bot':
+            return nodeList[(self.index + cols) - 1]
 
     def randomneighbor(self):
         order = [1,2,3,4]
